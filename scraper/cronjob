@@ -1,0 +1,2 @@
+# Run the Python script at 11:01 AM EST every day (which is 4:01 PM UTC)
+1 15 * * * root python /app/scraper/scrape_all_updating_manga_info.py >> /var/log/cron.log 2>&1
