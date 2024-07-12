@@ -1,26 +1,20 @@
 import requests
 import psycopg2
+import os
 from bs4 import BeautifulSoup
 
 '''
 This script populates our database for the first time with all the ongoing manga series and their latest chapter
 '''
 
-# Database connection details
-DB_HOST = 'viaduct.proxy.rlwy.net'
-DB_PORT = 46503
-DB_NAME = 'railway'
-DB_USER = 'postgres'
-DB_PASSWORD = 'QlArEMoISGqpJYAXbyRvFnHiOQVZyqwz'
-
 # Connect to the PostgreSQL database
 try:
     conn = psycopg2.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD
+        host=os.getenv("DB_HOST"),
+        port=os.getenv("DB_PORT"),
+        dbname=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD")
     )
     cursor = conn.cursor()
     print("Connected to the database successfully")
@@ -41,8 +35,8 @@ manga_list = soup.find_all('a', class_='AllTitle-module_allTitle_1CIUC')
 
 # Loop through each manga title and get data
 for manga in manga_list:
-    manga_url = manga['href']
-    manga_response = session.get(manga_url, headers=headers)
+    title_src = manga['href']
+    manga_response = session.get(title_src, headers=headers)
     # Get each manga's html
     manga_soup = BeautifulSoup(manga_response.text, 'html.parser')
 
@@ -74,13 +68,14 @@ for manga in manga_list:
 
     # Store data in PostgreSQL
     cursor.execute("""
-        INSERT INTO manga_list (title, cover_src, latest_chapter_src, update_day_of_week)
+        INSERT INTO manga_list (title, cover_src, latest_chapter_src, update_day_of_week, title_src)
         VALUES (%s, %s, %s, %s)
         ON CONFLICT (title) DO UPDATE SET
             cover_src = EXCLUDED.img_src,
             latest_chapter_src = EXCLUDED.latest_chapter_src,
             update_day_of_week = EXCLUDED.update_day_of_week;
-    """, (title, cover_src, latest_chapter_src, update_day_of_week))
+            title_src = EXCLUDED.title_src
+    """, (title, cover_src, latest_chapter_src, update_day_of_week, title_src))
 
     # just test one for now
     break
