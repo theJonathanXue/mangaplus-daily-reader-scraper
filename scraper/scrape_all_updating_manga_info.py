@@ -56,7 +56,8 @@ def scrape_manga_data():
 
         # Find all manga titles on the webpage
         manga_list = soup.find_all('a', class_='AllTitle-module_allTitle_1CIUC')
-
+        print("response:", response)
+        print("soup:", soup)
         # Loop through each manga title and get data
         for manga in manga_list:
             title_src = manga['href']
