@@ -60,7 +60,7 @@ def scrape_manga_data():
         # Loop through each manga title and get data
         for manga in manga_list:
             title_src = manga['href']
-
+            print("title_src: ", title_src)
             # Get manga details page
             manga_response = session.get(title_src, headers=headers)
             manga_soup = BeautifulSoup(manga_response.text, 'html.parser')
