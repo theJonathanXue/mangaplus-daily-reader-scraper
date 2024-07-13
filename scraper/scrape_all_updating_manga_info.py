@@ -7,15 +7,19 @@ from bs4 import BeautifulSoup
 This script populates our database for the first time with all the ongoing manga series and their latest chapter
 '''
 
+db_config = {
+    'host': os.getenv('DB_HOST'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'database': os.getenv('DB_NAME'),
+    'port': os.getenv('DB_PORT')
+}
+
+print(db_config)
+
 # Connect to the PostgreSQL database
 try:
-    conn = psycopg2.connect(
-        host=os.getenv("PGHOST"),
-        port=os.getenv("PGPORT"),
-        dbname=os.getenv("PGDATABASE"),
-        user=os.getenv("PGUSER"),
-        password=os.getenv("PGPASSWORD")
-    )
+    conn = psycopg2.connect(**db_config)
     cursor = conn.cursor()
     print("Connected to the database successfully")
 except Exception as e:
