@@ -1,8 +1,4 @@
 requests
 beautifulsoup4
 psycopg2-binary
-soupsieve
-urllib3
-idna
-charset-normalizer
-certifi
+selenium
