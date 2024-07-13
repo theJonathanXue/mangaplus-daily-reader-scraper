@@ -41,6 +41,7 @@ def scrape_manga_data():
 
     # Session for making HTTP requests
     session = requests.Session()
+    session.verify = False 
 
     # URL to scrape
     url = 'https://mangaplus.shueisha.co.jp/manga_list/updated'
