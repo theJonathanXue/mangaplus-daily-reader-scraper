@@ -1,42 +1,41 @@
-# Use an official Python runtime as a parent image
-FROM python:3.10-slim
+FROM python:3.10.2-bullseye
 
-# Set the working directory
-WORKDIR /app
+# Install dependencies
+RUN apt-get update -y && apt-get install -y wget xvfb unzip jq
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Install Google Chrome dependencies
+RUN apt-get install -y libxss1 libappindicator1 libgconf-2-4 \
+    fonts-liberation libasound2 libnspr4 libnss3 libx11-xcb1 libxtst6 lsb-release xdg-utils \
+    libgbm1 libnss3 libatk-bridge2.0-0 libgtk-3-0 libx11-xcb1 libxcb-dri3-0
+
+
+# Fetch the latest version numbers and URLs for Chrome and ChromeDriver
+RUN curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json > /tmp/versions.json
+
+RUN CHROME_URL=$(jq -r '.channels.Stable.downloads.chrome[] | select(.platform=="linux64") | .url' /tmp/versions.json) && \
+    wget -q --continue -O /tmp/chrome-linux64.zip $CHROME_URL && \
+    unzip /tmp/chrome-linux64.zip -d /opt/chrome
+
+RUN chmod +x /opt/chrome/chrome-linux64/chrome
+
+
+RUN CHROMEDRIVER_URL=$(jq -r '.channels.Stable.downloads.chromedriver[] | select(.platform=="linux64") | .url' /tmp/versions.json) && \
+    wget -q --continue -O /tmp/chromedriver-linux64.zip $CHROMEDRIVER_URL && \
+    unzip /tmp/chromedriver-linux64.zip -d /opt/chromedriver && \
+    chmod +x /opt/chromedriver/chromedriver-linux64/chromedriver
+
+# Set up Chromedriver Environment variables
+ENV CHROMEDRIVER_DIR /opt/chromedriver
+ENV PATH $CHROMEDRIVER_DIR:$PATH
+
+# Clean upa
+RUN rm /tmp/chrome-linux64.zip /tmp/chromedriver-linux64.zip /tmp/versions.json
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r scraper/requirements.txt
 
-# Install cron
-RUN apt-get update && apt-get install -y cron
+# Copy your Python script into the container
+COPY scrape_all_updating_manga_info.py /scraper/scrape_all_updating_manga_info.py
 
-# Copy the cron job file into the cron.d directory
-COPY scraper/cronjob /etc/cron.d/manga_cron
-
-# Give execution rights on the cron job
-RUN chmod 0644 /etc/cron.d/manga_cron
-
-# Database env variables 
-ARG PGHOST
-ARG PGUSER
-ARG PGPASSWORD
-ARG PGDATABASE
-ARG PGPORT
-
-ENV PGHOST=$PGHOST 
-ENV PGUSER=$PGUSER 
-ENV PGPASSWORD=$PGPASSWORD 
-ENV PGDATABASE=$PGDATABASE 
-ENV PGPORT=$PGPORT 
-
-# Apply the cron job
-RUN crontab /etc/cron.d/manga_cron
-
-# Create the log file to be able to run tail
-RUN touch /var/log/cron.log
-
-# Run the command on container startup
-CMD cron && tail -f /var/log/cron.log
+# Command to run the script
+CMD ["python", "/scraper/scrape_all_updating_manga_info.py"]
