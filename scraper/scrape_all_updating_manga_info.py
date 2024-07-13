@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 '''
 This script populates our database for the first time with all the ongoing manga series and their latest chapter
 '''
-prin(os.environ)
+print(os.environ)
 db_config = {
     'host': os.getenv('PGHOST'),
     'user': os.getenv('PGUSER'),
