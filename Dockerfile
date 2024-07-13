@@ -19,6 +19,13 @@ COPY scraper/cronjob /etc/cron.d/manga_cron
 # Give execution rights on the cron job
 RUN chmod 0644 /etc/cron.d/manga_cron
 
+# Database env variables 
+ARG PGHOST
+ARG PGUSER
+ARG PGPASSWORD
+ARG PGDATABASE
+ARG PGPORT
+
 # Apply the cron job
 RUN crontab /etc/cron.d/manga_cron
 
