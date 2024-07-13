@@ -89,6 +89,8 @@ def scrape_manga_data():
                     update_day_of_week = EXCLUDED.update_day_of_week,
                     title_src = EXCLUDED.title_src
             """, (title, cover_src, latest_chapter_src, update_day_of_week, title_src))
+            # just test first manga for now
+            break
 
         # Commit changes and close cursor and connection
         conn.commit()
