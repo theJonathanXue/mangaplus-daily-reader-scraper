@@ -31,11 +31,16 @@ ENV PATH $CHROMEDRIVER_DIR:$PATH
 # Clean upa
 RUN rm /tmp/chrome-linux64.zip /tmp/chromedriver-linux64.zip /tmp/versions.json
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r scraper/requirements.txt
+# Copy requirements file and install Python dependencies
+COPY scraper/requirements.txt /app/scraper/requirements.txt
+RUN pip install --upgrade pip
+RUN pip install -r /app/scraper/requirements.txt
 
-# Copy your Python script into the container
-COPY scrape_all_updating_manga_info.py /scraper/scrape_all_updating_manga_info.py
+# Set the working directory
+WORKDIR /app/scraper
 
-# Command to run the script
-CMD ["python", "/scraper/scrape_all_updating_manga_info.py"]
+# Copy the rest of the application
+COPY scraper /app/scraper
+
+# Run the scraper script
+CMD ["python", "scrape_all_updating_manga_info.py"]
