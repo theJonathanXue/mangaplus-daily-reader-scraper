@@ -4,6 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 import time
 
 # Database configuration
@@ -92,37 +93,43 @@ def scrape_manga_data():
                 # Get update day of the week
                 next_chapter_date_p = driver.find_element(By.CLASS_NAME, 'TitleDetail-module_updateInfo_2MITq')
                 next_chapter_date = next_chapter_date_p.find_element(By.TAG_NAME, "span").text.strip()
-            except Exception as e:
-                print(f"Error: {e}") 
-                print(f"Title: {title_src}")
+                update_day_of_week = find_day_of_week(next_chapter_date)
+
+                # Store data in PostgreSQL
+                cursor.execute("""
+                    INSERT INTO manga_list (title, cover_src, latest_chapter_src, update_day_of_week, title_src, latest_chapter_date)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (title) DO UPDATE SET
+                        cover_src = EXCLUDED.cover_src,
+                        latest_chapter_src = EXCLUDED.latest_chapter_src,
+                        update_day_of_week = EXCLUDED.update_day_of_week,
+                        title_src = EXCLUDED.title_src,
+                        latest_chapter_date = EXCLUDED.latest_chapter_date
+                """, (title, cover_src, latest_chapter_src, update_day_of_week, title_src, latest_chapter_date))
+
+            except NoSuchElementException as e:
+                print(f"Error finding elements on manga details page: {e}")
+                print(f"Skipping manga with title_src: {title_src}")
                 continue
-            update_day_of_week = find_day_of_week(next_chapter_date)
-            # Store data in PostgreSQL
-            cursor.execute("""
-                INSERT INTO manga_list (title, cover_src, latest_chapter_src, update_day_of_week, title_src, latest_chapter_date)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                ON CONFLICT (title) DO UPDATE SET
-                    cover_src = EXCLUDED.cover_src,
-                    latest_chapter_src = EXCLUDED.latest_chapter_src,
-                    update_day_of_week = EXCLUDED.update_day_of_week,
-                    title_src = EXCLUDED.title_src,
-                    latest_chapter_date = EXCLUDED.latest_chapter_date
-            """, (title, cover_src, latest_chapter_src, update_day_of_week, title_src, latest_chapter_date))
+            except StaleElementReferenceException as e:
+                print(f"StaleElementReferenceException caught: {e}")
+                print(f"Retrying manga with title_src: {title_src}")
+                driver.get(title_src)  # Reload the page and try again
+                time.sleep(3)
+                continue
 
         # Commit changes and close cursor and connection
         conn.commit()
         print("Committed to the database successfully")
-        cursor.close()
-        conn.close()
 
     except Exception as e:
         print(f"Error: {e}")
         conn.rollback()  # Rollback changes if any error occurs
-        cursor.close()
-        conn.close()
         raise
 
     finally:
+        cursor.close()
+        conn.close()
         # Close the browser
         driver.quit()
 
