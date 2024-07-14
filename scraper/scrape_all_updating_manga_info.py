@@ -65,10 +65,14 @@ def scrape_manga_data():
         # Find all manga titles on the webpage
         manga_list = driver.find_elements(By.CLASS_NAME, 'AllTitle-module_allTitle_1CIUC')
 
-        # Loop through each manga title and get data
+        # Loop through each manga title and first extract the href for each title
+        title_src_list = []
         for manga in manga_list:
             title_src = manga.get_attribute('href') 
-            
+            title_src_list.append(title_src)
+
+        # Now go to each manga title's page and get the data we want for our database
+        for title_src in title_src_list:
             # Get manga details page
             driver.get(title_src)
 
