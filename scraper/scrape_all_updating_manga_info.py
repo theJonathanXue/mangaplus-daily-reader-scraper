@@ -101,7 +101,7 @@ def scrape_manga_data():
             # Store data in PostgreSQL
             cursor.execute("""
                 INSERT INTO manga_list (title, cover_src, latest_chapter_src, update_day_of_week, title_src, latest_chapter_date)
-                VALUES (%s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT (title) DO UPDATE SET
                     cover_src = EXCLUDED.cover_src,
                     latest_chapter_src = EXCLUDED.latest_chapter_src,
