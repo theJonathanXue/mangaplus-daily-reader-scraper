@@ -114,6 +114,7 @@ def scrape_manga_data():
 
         # Commit changes and close cursor and connection
         conn.commit()
+        print("Committed to the database successfully")
         cursor.close()
         conn.close()
 
