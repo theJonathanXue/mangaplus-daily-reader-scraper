@@ -92,7 +92,12 @@ def scrape_manga_data():
             next_chapter_date_p = driver.find_element(By.CLASS_NAME, 'TitleDetail-module_updateInfo_2MITq')
             next_chapter_date = next_chapter_date_p.find_element(By.TAG_NAME, "span").text.strip()
             update_day_of_week = find_day_of_week(next_chapter_date)
-
+            print("title: ", title)
+            print("cover_src: ", cover_src)
+            print("latest_chapter_src: ", latest_chapter_src)
+            print("update_day_of_week: ", update_day_of_week)
+            print("title_src: ", title_src)
+            print("latest_chapter_date: ", latest_chapter_date)
             # Store data in PostgreSQL
             cursor.execute("""
                 INSERT INTO manga_list (title, cover_src, latest_chapter_src, update_day_of_week, title_src, latest_chapter_date)
