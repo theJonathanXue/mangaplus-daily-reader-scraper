@@ -86,7 +86,7 @@ def scrape_manga_data():
             try:
                 latest_chapter_date = driver.find_element(By.CLASS_NAME, 'ChapterListItem-module_date_xe1XF').text.strip()
             except:
-                # do nothing
+                print("No latest_chapter")
             # Get update day of the week
             next_chapter_date_p = driver.find_element(By.CLASS_NAME, 'TitleDetail-module_updateInfo_2MITq')
             try:
