@@ -64,12 +64,10 @@ def scrape_manga_data():
 
         # Find all manga titles on the webpage
         manga_list = driver.find_elements(By.CLASS_NAME, 'AllTitle-module_allTitle_1CIUC')
-        print("manga_list: ", manga_list)
 
         # Loop through each manga title and get data
         for manga in manga_list:
-            title_src = manga.get_attribute('href')
-            print("title_src: ", title_src)
+            title_src = manga.get_attribute('href') 
             
             # Get manga details page
             driver.get(title_src)
@@ -103,7 +101,8 @@ def scrape_manga_data():
                     cover_src = EXCLUDED.cover_src,
                     latest_chapter_src = EXCLUDED.latest_chapter_src,
                     update_day_of_week = EXCLUDED.update_day_of_week,
-                    title_src = EXCLUDED.title_src
+                    title_src = EXCLUDED.title_src,
+                    latest_chapter_date = EXCLUDED.latest_chapter_date
             """, (title, cover_src, latest_chapter_src, update_day_of_week, title_src, latest_chapter_date))
             # Just test first manga for now
             break
