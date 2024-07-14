@@ -5,6 +5,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 
 # Database configuration
@@ -60,8 +62,10 @@ def scrape_manga_data():
         search_url = 'https://mangaplus.shueisha.co.jp/manga_list/updated'
         driver.get(search_url)
 
-        # Give the browser time to load all content.
-        time.sleep(3)
+        # Wait until all manga titles are loaded
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_all_elements_located((By.CLASS_NAME, 'AllTitle-module_allTitle_1CIUC'))
+        )
 
         # Find all manga titles on the webpage
         manga_list = driver.find_elements(By.CLASS_NAME, 'AllTitle-module_allTitle_1CIUC')
@@ -69,7 +73,7 @@ def scrape_manga_data():
         # Loop through each manga title and first extract the href for each title
         title_src_list = []
         for manga in manga_list:
-            title_src = manga.get_attribute('href') 
+            title_src = manga.get_attribute('href')
             title_src_list.append(title_src)
         
         # Now go to each manga title's page and get the data we want for our database
@@ -77,9 +81,11 @@ def scrape_manga_data():
             # Get manga details page
             driver.get(title_src)
 
-            # Give the browser time to load all content.
-            time.sleep(3)
-            print("title_src: ", title_src)
+            # Wait until manga details are loaded
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'TitleDetailHeader-module_title_Iy33M'))
+            )
+            
             # Parse manga details
             try:
                 title = driver.find_element(By.CLASS_NAME, 'TitleDetailHeader-module_title_Iy33M').text.strip()
@@ -89,7 +95,9 @@ def scrape_manga_data():
                 latest_chapter_comment_href = driver.find_elements(By.CLASS_NAME, 'ChapterListItem-module_commentContainer_1P6qt')[-1].get_attribute('href')
                 latest_chapter_value = latest_chapter_comment_href.split('/')[-1]
                 latest_chapter_src = f"https://mangaplus.shueisha.co.jp/viewer/{latest_chapter_value}"
+                
                 latest_chapter_date = driver.find_element(By.CLASS_NAME, 'ChapterListItem-module_date_xe1XF').text.strip()
+                
                 # Get update day of the week
                 next_chapter_date_p = driver.find_element(By.CLASS_NAME, 'TitleDetail-module_updateInfo_2MITq')
                 next_chapter_date = next_chapter_date_p.find_element(By.TAG_NAME, "span").text.strip()
@@ -115,7 +123,9 @@ def scrape_manga_data():
                 print(f"StaleElementReferenceException caught: {e}")
                 print(f"Retrying manga with title_src: {title_src}")
                 driver.get(title_src)  # Reload the page and try again
-                time.sleep(3)
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, 'TitleDetailHeader-module_title_Iy33M'))
+                )
                 continue
 
         # Commit changes and close cursor and connection
