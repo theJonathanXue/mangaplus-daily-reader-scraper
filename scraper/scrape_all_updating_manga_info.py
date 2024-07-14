@@ -71,7 +71,6 @@ def scrape_manga_data():
             title_src = manga.get_attribute('href') 
             title_src_list.append(title_src)
         
-        print("title_src_list: ", title_src_list)
         # Now go to each manga title's page and get the data we want for our database
         for title_src in title_src_list:
             # Get manga details page
@@ -79,19 +78,19 @@ def scrape_manga_data():
 
             # Give the browser time to load all content.
             time.sleep(2)
-            print("driver: ", driver)
+            print("title_src: ", title_src)
             # Parse manga details
-            title = driver.find_element(By.CLASS_NAME, 'TitleDetailHeader-module_title_Iy33M').text.strip()
-            cover_src = driver.find_element(By.CLASS_NAME, 'TitleDetailHeader-module_coverImage_3rvaT').get_attribute('src')
-
-            # Get latest chapter details
-            latest_chapter_comment_href = driver.find_elements(By.CLASS_NAME, 'ChapterListItem-module_commentContainer_1P6qt')[-1].get_attribute('href')
-            latest_chapter_value = latest_chapter_comment_href.split('/')[-1]
-            latest_chapter_src = f"https://mangaplus.shueisha.co.jp/viewer/{latest_chapter_value}"
             try:
+                title = driver.find_element(By.CLASS_NAME, 'TitleDetailHeader-module_title_Iy33M').text.strip()
+                cover_src = driver.find_element(By.CLASS_NAME, 'TitleDetailHeader-module_coverImage_3rvaT').get_attribute('src')
+    
+                # Get latest chapter details
+                latest_chapter_comment_href = driver.find_elements(By.CLASS_NAME, 'ChapterListItem-module_commentContainer_1P6qt')[-1].get_attribute('href')
+                latest_chapter_value = latest_chapter_comment_href.split('/')[-1]
+                latest_chapter_src = f"https://mangaplus.shueisha.co.jp/viewer/{latest_chapter_value}"
                 latest_chapter_date = driver.find_element(By.CLASS_NAME, 'ChapterListItem-module_date_xe1XF').text.strip()
             except:
-                print("No latest_chapter")
+                print("Just keep swimming")
             # Get update day of the week
             next_chapter_date_p = driver.find_element(By.CLASS_NAME, 'TitleDetail-module_updateInfo_2MITq')
             try:
