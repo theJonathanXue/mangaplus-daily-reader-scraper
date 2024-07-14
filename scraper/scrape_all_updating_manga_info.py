@@ -64,6 +64,7 @@ def scrape_manga_data():
 
         # Find all manga titles on the webpage
         manga_list = driver.find_elements(By.CLASS_NAME, 'AllTitle-module_allTitle_1CIUC')
+        print("manga_list: ", manga_list)
 
         # Loop through each manga title and get data
         for manga in manga_list:
@@ -85,6 +86,8 @@ def scrape_manga_data():
             latest_chapter_value = latest_chapter_comment_href.split('/')[-1]
             latest_chapter_src = f"https://mangaplus.shueisha.co.jp/viewer/{latest_chapter_value}"
             latest_chapter_date = driver.find_element(By.CLASS_NAME, 'ChapterListItem-module_date_alreadyRead_31MGZ').text.strip()
+            if not latest_chapter_date:
+                latest_chapter_date = driver.find_element(By.CLASS_NAME, 'ChapterListItem-module_date_xe1XF').text.strip()
 
             # Get update day of the week
             next_chapter_date_p = driver.find_element(By.CLASS_NAME, 'TitleDetail-module_updateInfo_2MITq')
