@@ -70,7 +70,8 @@ def scrape_manga_data():
         for manga in manga_list:
             title_src = manga.get_attribute('href') 
             title_src_list.append(title_src)
-
+        
+        print("title_src_list: ", title_src_list)
         # Now go to each manga title's page and get the data we want for our database
         for title_src in title_src_list:
             # Get manga details page
@@ -78,7 +79,7 @@ def scrape_manga_data():
 
             # Give the browser time to load all content.
             time.sleep(2)
-
+            print("driver: ", driver)
             # Parse manga details
             title = driver.find_element(By.CLASS_NAME, 'TitleDetailHeader-module_title_Iy33M').text.strip()
             cover_src = driver.find_element(By.CLASS_NAME, 'TitleDetailHeader-module_coverImage_3rvaT').get_attribute('src')
