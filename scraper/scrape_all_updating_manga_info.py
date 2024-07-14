@@ -87,6 +87,8 @@ def scrape_manga_data():
             )
             
             # Parse manga details
+            # For every manga we must find the title, cover_src, latest_chapter_src, and latest_chapter_date
+            # THe update_day_of_week is not mandatory
             try:
                 title = driver.find_element(By.CLASS_NAME, 'TitleDetailHeader-module_title_Iy33M').text.strip()
                 cover_src = driver.find_element(By.CLASS_NAME, 'TitleDetailHeader-module_coverImage_3rvaT').get_attribute('src')
@@ -99,9 +101,13 @@ def scrape_manga_data():
                 latest_chapter_date = driver.find_element(By.CLASS_NAME, 'ChapterListItem-module_date_xe1XF').text.strip()
                 
                 # Get update day of the week
-                next_chapter_date_p = driver.find_element(By.CLASS_NAME, 'TitleDetail-module_updateInfo_2MITq')
-                next_chapter_date = next_chapter_date_p.find_element(By.TAG_NAME, "span").text.strip()
-                update_day_of_week = find_day_of_week(next_chapter_date)
+                try:
+                    next_chapter_date_p = driver.find_element(By.CLASS_NAME, 'TitleDetail-module_updateInfo_2MITq')
+                    next_chapter_date = next_chapter_date_p.find_element(By.TAG_NAME, "span").text.strip()
+                    update_day_of_week = find_day_of_week(next_chapter_date)
+                except:
+                    # print(No update_day_of_week information, that's OK
+                    update_day_of_week = "not_explicit"
 
                 # Store data in PostgreSQL
                 cursor.execute("""
@@ -119,13 +125,13 @@ def scrape_manga_data():
                 print(f"Error finding elements on manga details page: {e}")
                 print(f"Skipping manga with title_src: {title_src}")
                 continue
-            except StaleElementReferenceException as e:
-                print(f"StaleElementReferenceException caught: {e}")
-                print(f"Retrying manga with title_src: {title_src}")
-                driver.get(title_src)  # Reload the page and try again
-                WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, 'TitleDetailHeader-module_title_Iy33M'))
-                )
+            except TimeoutException as e:
+                print(f"Timeout waiting for element: {e}")
+                print(f"Skipping manga with title_src: {title_src}")
+                continue
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                print(f"Skipping manga with title_src: {title_src}")
                 continue
 
         # Commit changes and close cursor and connection
