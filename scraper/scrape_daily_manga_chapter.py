@@ -83,6 +83,8 @@ def scrape_manga_data():
                 # We can break since the updates are ordered
                 break
         
+        print("title_src_list: ", title_src_list)
+        
         # Now go to each manga title's page and get the data we want for our database
         for title_src in title_src_list:
             # Get manga details page
@@ -116,7 +118,17 @@ def scrape_manga_data():
                 except:
                     # print(No update_day_of_week information, that's OK
                     update_day_of_week = "not_explicit"
-
+                
+                print("title: ", title)
+                
+                print("title_src: ", title_src)
+            
+                print("latest_chapter_date: ", latest_chapter_date)
+                
+                print("latest_chapter_src: ", latest_chapter_src)
+                
+                print("update_day_of_week: ", update_day_of_week)
+                
                 # Store data in PostgreSQL
                 cursor.execute("""
                     INSERT INTO manga_list (title, cover_src, latest_chapter_src, update_day_of_week, title_src, latest_chapter_date)
