@@ -84,13 +84,16 @@ def scrape_manga_data():
             latest_chapter_value = latest_chapter_comment_href.split('/')[-1]
             latest_chapter_src = f"https://mangaplus.shueisha.co.jp/viewer/{latest_chapter_value}"
             try:
-                latest_chapter_date = driver.find_element(By.CLASS_NAME, 'ChapterListItem-module_date_alreadyRead_31MGZ').text.strip()
-            except:
                 latest_chapter_date = driver.find_element(By.CLASS_NAME, 'ChapterListItem-module_date_xe1XF').text.strip()
-
+            except:
+                # do nothing
             # Get update day of the week
             next_chapter_date_p = driver.find_element(By.CLASS_NAME, 'TitleDetail-module_updateInfo_2MITq')
-            next_chapter_date = next_chapter_date_p.find_element(By.TAG_NAME, "span").text.strip()
+            try:
+                next_chapter_date = next_chapter_date_p.find_element(By.TAG_NAME, "span").text.strip()
+            except:
+                # if there is no next chapter date this series is complete/not updating
+                continue
             update_day_of_week = find_day_of_week(next_chapter_date)
             print("title: ", title)
             print("cover_src: ", cover_src)
@@ -109,8 +112,6 @@ def scrape_manga_data():
                     title_src = EXCLUDED.title_src,
                     latest_chapter_date = EXCLUDED.latest_chapter_date
             """, (title, cover_src, latest_chapter_src, update_day_of_week, title_src, latest_chapter_date))
-            # Just test first manga for now
-            break
 
         # Commit changes and close cursor and connection
         conn.commit()
