@@ -43,8 +43,11 @@ def scrape_manga_data():
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")  # This is important for some versions of Chrome
 
+    # Set path to Chrome binary
+    chrome_options.binary_location = "/opt/chrome/chrome-linux64/chrome"
+
     # Set path to ChromeDriver
-    chrome_service = ChromeService(executable_path="/usr/local/bin/chromedriver")
+    chrome_service = ChromeService(executable_path="/opt/chromedriver/chromedriver-linux64/chromedriver")
 
     # Set up driver
     driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
