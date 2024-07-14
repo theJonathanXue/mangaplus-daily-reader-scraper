@@ -4,6 +4,9 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 
 # Database configuration
@@ -60,63 +63,65 @@ def scrape_manga_data():
         driver.get(search_url)
 
         # Give the browser time to load all content.
-        time.sleep(2)
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'AllTitle-module_allTitle_1CIUC'))
+        )
 
         # Find all manga titles on the webpage
         manga_list = driver.find_elements(By.CLASS_NAME, 'AllTitle-module_allTitle_1CIUC')
 
-        # Loop through each manga title and first extract the href for each title
+        # Loop through each manga title
         title_src_list = []
         for manga in manga_list:
             title_src = manga.get_attribute('href') 
-            title_src_list.append(title_src)
+
+            # To find which titles were updated today, we check if it has a specific a tag as a child element
+            try:
+                manga.find_element(By.CLASS_NAME, "AllTitle-module_upLabelText_2LMKC")
+                title_src_list.append(title_src)
+            except NoSuchElementException:
+                # We can break since the updates are ordered
+                break
         
         print("title_src_list: ", title_src_list)
-        # Now go to each manga title's page and get the data we want for our database
+
+        # Now get the latest chapter
         for title_src in title_src_list:
             # Get manga details page
             driver.get(title_src)
 
             # Give the browser time to load all content.
-            time.sleep(2)
-            print("driver: ", driver)
-            # Parse manga details
-            title = driver.find_element(By.CLASS_NAME, 'TitleDetailHeader-module_title_Iy33M').text.strip()
-            cover_src = driver.find_element(By.CLASS_NAME, 'TitleDetailHeader-module_coverImage_3rvaT').get_attribute('src')
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'ChapterListItem-module_commentContainer_1P6qt'))
+            )
 
-            # Get latest chapter details
-            latest_chapter_comment_href = driver.find_elements(By.CLASS_NAME, 'ChapterListItem-module_commentContainer_1P6qt')[-1].get_attribute('href')
-            latest_chapter_value = latest_chapter_comment_href.split('/')[-1]
-            latest_chapter_src = f"https://mangaplus.shueisha.co.jp/viewer/{latest_chapter_value}"
             try:
+                # Get latest chapter details
+                latest_chapter_comment_href = driver.find_elements(By.CLASS_NAME, 'ChapterListItem-module_commentContainer_1P6qt')[-1].get_attribute('href')
+                latest_chapter_value = latest_chapter_comment_href.split('/')[-1]
+                latest_chapter_src = f"https://mangaplus.shueisha.co.jp/viewer/{latest_chapter_value}"
+
                 latest_chapter_date = driver.find_element(By.CLASS_NAME, 'ChapterListItem-module_date_xe1XF').text.strip()
-            except:
-                print("No latest_chapter")
-            # Get update day of the week
-            next_chapter_date_p = driver.find_element(By.CLASS_NAME, 'TitleDetail-module_updateInfo_2MITq')
-            try:
-                next_chapter_date = next_chapter_date_p.find_element(By.TAG_NAME, "span").text.strip()
-            except:
-                # if there is no next chapter date this series is complete/not updating
+
+                # Get manga title
+                title = driver.find_element(By.CLASS_NAME, 'TitleDetailHeader-module_title_Iy33M').text.strip()
+
+                # Store data in PostgreSQL
+                cursor.execute("""
+                    UPDATE manga_list 
+                    SET latest_chapter_src = %s, latest_chapter_date = %s
+                    WHERE title = %s
+                """, (latest_chapter_src, latest_chapter_date, title))
+
+            except NoSuchElementException as e:
+                print(f"No such element: {e}")
                 continue
-            update_day_of_week = find_day_of_week(next_chapter_date)
-            print("title: ", title)
-            print("cover_src: ", cover_src)
-            print("latest_chapter_src: ", latest_chapter_src)
-            print("update_day_of_week: ", update_day_of_week)
-            print("title_src: ", title_src)
-            print("latest_chapter_date: ", latest_chapter_date)
-            # Store data in PostgreSQL
-            cursor.execute("""
-                INSERT INTO manga_list (title, cover_src, latest_chapter_src, update_day_of_week, title_src, latest_chapter_date)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                ON CONFLICT (title) DO UPDATE SET
-                    cover_src = EXCLUDED.cover_src,
-                    latest_chapter_src = EXCLUDED.latest_chapter_src,
-                    update_day_of_week = EXCLUDED.update_day_of_week,
-                    title_src = EXCLUDED.title_src,
-                    latest_chapter_date = EXCLUDED.latest_chapter_date
-            """, (title, cover_src, latest_chapter_src, update_day_of_week, title_src, latest_chapter_date))
+            except TimeoutException as e:
+                print(f"Timeout waiting for element: {e}")
+                continue
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                continue
 
         # Commit changes and close cursor and connection
         conn.commit()
