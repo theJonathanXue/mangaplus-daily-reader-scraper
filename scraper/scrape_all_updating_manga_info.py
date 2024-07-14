@@ -60,7 +60,7 @@ def scrape_manga_data():
         driver.get(search_url)
 
         # Give the browser time to load all content.
-        time.sleep(2)
+        time.sleep(3)
 
         # Find all manga titles on the webpage
         manga_list = driver.find_elements(By.CLASS_NAME, 'AllTitle-module_allTitle_1CIUC')
@@ -77,7 +77,7 @@ def scrape_manga_data():
             driver.get(title_src)
 
             # Give the browser time to load all content.
-            time.sleep(2)
+            time.sleep(3)
             print("title_src: ", title_src)
             # Parse manga details
             try:
@@ -89,22 +89,14 @@ def scrape_manga_data():
                 latest_chapter_value = latest_chapter_comment_href.split('/')[-1]
                 latest_chapter_src = f"https://mangaplus.shueisha.co.jp/viewer/{latest_chapter_value}"
                 latest_chapter_date = driver.find_element(By.CLASS_NAME, 'ChapterListItem-module_date_xe1XF').text.strip()
-            except:
-                print("Just keep swimming")
-            # Get update day of the week
-            next_chapter_date_p = driver.find_element(By.CLASS_NAME, 'TitleDetail-module_updateInfo_2MITq')
-            try:
+                # Get update day of the week
+                next_chapter_date_p = driver.find_element(By.CLASS_NAME, 'TitleDetail-module_updateInfo_2MITq')
                 next_chapter_date = next_chapter_date_p.find_element(By.TAG_NAME, "span").text.strip()
-            except:
-                # if there is no next chapter date this series is complete/not updating
+            except Exception as e:
+                print(f"Error: {e}") 
+                print(f"Title: {title_src}")
                 continue
             update_day_of_week = find_day_of_week(next_chapter_date)
-            print("title: ", title)
-            print("cover_src: ", cover_src)
-            print("latest_chapter_src: ", latest_chapter_src)
-            print("update_day_of_week: ", update_day_of_week)
-            print("title_src: ", title_src)
-            print("latest_chapter_date: ", latest_chapter_date)
             # Store data in PostgreSQL
             cursor.execute("""
                 INSERT INTO manga_list (title, cover_src, latest_chapter_src, update_day_of_week, title_src, latest_chapter_date)
