@@ -85,8 +85,9 @@ def scrape_manga_data():
             latest_chapter_comment_href = driver.find_elements(By.CLASS_NAME, 'ChapterListItem-module_commentContainer_1P6qt')[-1].get_attribute('href')
             latest_chapter_value = latest_chapter_comment_href.split('/')[-1]
             latest_chapter_src = f"https://mangaplus.shueisha.co.jp/viewer/{latest_chapter_value}"
-            latest_chapter_date = driver.find_element(By.CLASS_NAME, 'ChapterListItem-module_date_alreadyRead_31MGZ').text.strip()
-            if not latest_chapter_date:
+            try:
+                latest_chapter_date = driver.find_element(By.CLASS_NAME, 'ChapterListItem-module_date_alreadyRead_31MGZ').text.strip()
+            except:
                 latest_chapter_date = driver.find_element(By.CLASS_NAME, 'ChapterListItem-module_date_xe1XF').text.strip()
 
             # Get update day of the week
