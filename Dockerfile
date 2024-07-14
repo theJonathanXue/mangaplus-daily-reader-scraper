@@ -43,4 +43,4 @@ WORKDIR /app/scraper
 COPY scraper /app/scraper
 
 # Run the scraper script
-CMD ["python", "scrape_all_updating_manga_info.py"]
+CMD ["python", "scrape_daily_manga_chapter.py.py"]
