@@ -81,7 +81,8 @@ def scrape_manga_data():
                 title_src_list.append(title_src)
             except NoSuchElementException:
                 # We can break since the updates are ordered
-                break
+                # Sike cannot because of completed series that are updated to be read on the app only
+                continue
         
         print("title_src_list: ", title_src_list)
         
