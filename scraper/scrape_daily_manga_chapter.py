@@ -128,8 +128,6 @@ def scrape_manga_data():
                 
                 print("latest_chapter_src: ", latest_chapter_src)
                 
-                print("update_day_of_week: ", update_day_of_week)
-                
                 # Store data in PostgreSQL
                 cursor.execute("""
                     INSERT INTO manga_list (title, cover_src, latest_chapter_src, update_day_of_week, title_src, latest_chapter_date)
