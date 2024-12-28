@@ -59,16 +59,16 @@ def scrape_manga_data():
     conn, cursor = connect_to_db()
     
     try:
-        search_url = 'https://mangaplus.shueisha.co.jp/manga_list/updated'
+        search_url = 'https://mangaplus.shueisha.co.jp/updates'
         driver.get(search_url)
 
         # Wait until all manga titles are loaded
         WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located((By.CLASS_NAME, 'AllTitle-module_allTitle_1CIUC'))
+            EC.presence_of_all_elements_located((By.CLASS_NAME, 'UpdatedTitle-module_titleWrapper_2EQIT'))
         )
 
         # Find all manga titles on the webpage
-        manga_list = driver.find_elements(By.CLASS_NAME, 'AllTitle-module_allTitle_1CIUC')
+        manga_list = driver.find_elements(By.CLASS_NAME, 'UpdatedTitle-module_titleWrapper_2EQIT')
 
         # Loop through each manga title
         title_src_list = []
@@ -77,7 +77,7 @@ def scrape_manga_data():
 
             # To find which titles were updated today, we check if it has a specific a tag as a child element
             try:
-                manga.find_element(By.CLASS_NAME, "AllTitle-module_upLabelText_2LMKC")
+                manga.find_element(By.CLASS_NAME, "UpdatedTitle-module_upLabel_3afXn")
                 title_src_list.append(title_src)
             except NoSuchElementException:
                 # We can break since the updates are ordered
