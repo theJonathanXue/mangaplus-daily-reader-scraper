@@ -73,7 +73,8 @@ def scrape_manga_data():
         # Loop through each manga title
         title_src_list = []
         for manga in manga_list:
-            title_src = manga.get_attribute('href') 
+            anchor_tag = manga.find_element(By.TAG_NAME, 'a')
+            title_src = anchor_tag.get_attribute('href')
 
             # To find which titles were updated today, we check if it has a specific a tag as a child element
             try:
