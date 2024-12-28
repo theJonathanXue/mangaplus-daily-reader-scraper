@@ -69,7 +69,7 @@ def scrape_manga_data():
 
         # Find all manga titles on the webpage
         manga_list = driver.find_elements(By.CLASS_NAME, 'UpdatedTitle-module_titleWrapper_2EQIT')
-
+        print("manga_list: ", manga_list)
         # Loop through each manga title
         title_src_list = []
         for manga in manga_list:
@@ -78,6 +78,7 @@ def scrape_manga_data():
             # To find which titles were updated today, we check if it has a specific a tag as a child element
             try:
                 manga.find_element(By.CLASS_NAME, "UpdatedTitle-module_upLabel_3afXn")
+                print("manga: ", manga)
                 title_src_list.append(title_src)
             except NoSuchElementException:
                 # We can break since the updates are ordered
