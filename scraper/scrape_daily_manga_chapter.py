@@ -67,6 +67,7 @@ def scrape_manga_data():
         search_url = 'https://mangaplus.shueisha.co.jp/updates'
         driver.get(search_url)
 
+        time.sleep(1)
         # Wait until all manga titles are loaded
         WebDriverWait(driver, 10).until(
             EC.presence_of_all_elements_located((By.CLASS_NAME, 'UpdatedTitle-module_titleWrapper_2EQIT'))
