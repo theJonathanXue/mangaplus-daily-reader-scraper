@@ -37,8 +37,8 @@ def find_day_of_week(text):
             return day
     return None
 
-# Main scraping function
-def scrape_manga_data():
+# Set up driver each time so we don't leak
+def setup_driver():
     # Setup Chrome options
     chrome_options = Options()
     chrome_options.add_argument("--headless")
@@ -51,14 +51,16 @@ def scrape_manga_data():
 
     # Set path to ChromeDriver
     chrome_service = ChromeService(executable_path="/opt/chromedriver/chromedriver-linux64/chromedriver")
-
-    # Set up driver
-    driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
-
-    # Connect to the database
-    conn, cursor = connect_to_db()
     
+    global driver
+    driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+    driver.maximize_window()
+    
+# Main scraping function
+def scrape_manga_data():    
     try:
+        # setup driver
+        setup_driver()
         search_url = 'https://mangaplus.shueisha.co.jp/updates'
         driver.get(search_url)
 
@@ -88,9 +90,13 @@ def scrape_manga_data():
                 break
         
         print("title_src_list: ", title_src_list)
+        # close driver
+        driver.close()
         
         # Now go to each manga title's page and get the data we want for our database
         for title_src in title_src_list:
+            # resetup driver
+            setup_driver()
             # Get manga details page
             driver.get(title_src)
 
@@ -158,6 +164,9 @@ def scrape_manga_data():
                 print(f"Unexpected error: {e}")
                 print(f"Skipping manga with title_src: {title_src}")
                 continue
+                
+            # close driver
+            driver.close()
 
         # Commit changes and close cursor and connection
         conn.commit()
