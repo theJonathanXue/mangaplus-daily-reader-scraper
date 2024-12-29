@@ -167,10 +167,10 @@ def scrape_manga_data():
                 print(f"Unexpected error: {e}")
                 print(f"Skipping manga with title_src: {title_src}")
                 continue
-                
-            # close driver
-            driver.close()
-
+            finally:
+                # close driver
+                driver.close()
+            
         # Commit changes and close cursor and connection
         conn.commit()
         print("Committed to the database successfully")
