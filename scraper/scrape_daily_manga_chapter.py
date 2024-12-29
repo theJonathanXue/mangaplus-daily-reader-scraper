@@ -59,6 +59,9 @@ def setup_driver():
 # Main scraping function
 def scrape_manga_data():    
     try:
+        # Connect to the database
+        conn, cursor = connect_to_db()
+        
         # setup driver
         setup_driver()
         search_url = 'https://mangaplus.shueisha.co.jp/updates'
