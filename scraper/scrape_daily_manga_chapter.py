@@ -79,12 +79,13 @@ def scrape_manga_data():
             # To find which titles were updated today, we check if it has a specific a tag as a child element
             try:
                 manga.find_element(By.CLASS_NAME, "UpdatedTitle-module_upLabel_3afXn")
-                print("manga: ", manga.text)
                 title_src_list.append(title_src)
             except NoSuchElementException:
                 # We can break since the updates are ordered
-                # Sike cannot because of completed series that are updated to be read on the app only
-                continue
+                # # Sike cannot because of completed series that are updated to be read on the app only
+                # continue
+                # now we can since they fixed that I think
+                break
         
         print("title_src_list: ", title_src_list)
         
