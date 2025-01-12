@@ -78,7 +78,7 @@ def scrape_manga_data():
         # Loop through each manga title
         title_src_list = []
         strike_one = False
-        stike_two = False
+        strike_two = False
         for manga in manga_list:
             anchor_tag = manga.find_element(By.TAG_NAME, 'a')
             title_src = anchor_tag.get_attribute('href')
