@@ -77,6 +77,8 @@ def scrape_manga_data():
         
         # Loop through each manga title
         title_src_list = []
+        strike_one = False
+        stike_two = False
         for manga in manga_list:
             anchor_tag = manga.find_element(By.TAG_NAME, 'a')
             title_src = anchor_tag.get_attribute('href')
@@ -84,6 +86,7 @@ def scrape_manga_data():
             # To find which titles were updated today, we check if it has a specific a tag as a child element
             try:
                 # Check if the element has either of the classes
+                print("title_src: ", title_src)
                 if (manga.find_element(By.CLASS_NAME, "UpdatedTitle-module_upLabel_3afXn") or
                     manga.find_element(By.CLASS_NAME, "UpdatedTitle-module_newLabel_1Kyis")):
                     title_src_list.append(title_src)
@@ -92,7 +95,14 @@ def scrape_manga_data():
                 # # Sike cannot because of completed series that are updated to be read on the app only
                 # continue
                 # now we can since they fixed that I think
-                break
+                if not strike_one:
+                    strike_one = True
+                    continue
+                if not strike_two:
+                    strike_two = True
+                    continue
+                if strike_one and strike_two:
+                    break
         
         print("title_src_list: ", title_src_list)
         # close driver
